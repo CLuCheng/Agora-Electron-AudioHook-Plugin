@@ -25,11 +25,11 @@ steps:
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: 'AgoraPlayerHookPlugin/'
+    rootFolderOrFile: 'AgoraPlayerHookPlugin/Release/'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: AgoraPlayerHookPlugin.zip
-    replaceExistingArchive: false
+    replaceExistingArchive: true
 
 - publish: AgoraPlayerHookPlugin.zip
   artifact: HookPlayerPlugin
