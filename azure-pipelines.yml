@@ -23,7 +23,7 @@ steps:
     vsVersion: '14.0'
     msbuildArchitecture: 'x86'
 
-- task: ArchiveFiles@3
+- task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: 'AgoraPlayerHookPlugin/Release/'
     includeRootFolder: true
