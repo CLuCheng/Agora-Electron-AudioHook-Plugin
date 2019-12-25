@@ -34,4 +34,13 @@ steps:
 - publish: AgoraPlayerHookPlugin.zip
   artifact: HookPlayerPlugin
 
+- task: GithubRelease@0 
+  displayName: 'Create GitHub Release'      
+  inputs:
+    gitHubConnection: AgoraIO-Community
+    repositoryName: AgoraIO-Community/Agora-Electron-AudioHook-Plugin
+    tagSource: manual    
+    assets: |
+         $(Build.ArtifactStagingDirectory)/*.zip
+
   
