@@ -1,0 +1,8 @@
+*.sdf
+*.suo
+*.opensdf
+debug/
+release/
+ipch/
+*.VC.db
+.vs/
