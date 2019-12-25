@@ -25,7 +25,7 @@ steps:
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: 'AgoraPlayerHookPlugin/Release/'
+    rootFolderOrFile: 'AgoraPlayerHookPlugin/'
     includeRootFolder: true
     archiveType: 'zip'
     archiveFile: AgoraPlayerHookPlugin.zip
