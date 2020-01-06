@@ -229,7 +229,7 @@ bool CHookPlugin::setParameter(const char* param)
     }
 
     if (doc.HasMember("plugin.hookAudio.forceRestart")) {
-        musicPlayerPath = doc["plugin.hookAudio.forceRestart"].GetBool();
+        bForceRestartPlayer = doc["plugin.hookAudio.forceRestart"].GetBool();
     }
 
     return true;
