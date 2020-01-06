@@ -240,7 +240,7 @@ void CHookPlugin::release()
     delete this;
 }
 
-IAVFramePlugin* createAudioFramePlugin()
+IAVFramePlugin* createAVFramePlugin()
 {
     return new CHookPlugin;
 }

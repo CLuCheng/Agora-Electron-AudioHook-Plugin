@@ -6,3 +6,4 @@ release/
 ipch/
 *.VC.db
 .vs/
+*.opendb
