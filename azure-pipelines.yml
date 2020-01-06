@@ -22,8 +22,12 @@ steps:
     configuration: '$(buildConfiguration)'
     vsVersion: '14.0'
     msbuildArchitecture: 'x86'
-
-- task: ArchiveFiles@2
+- task: AzureFileCopy@2
+  inputs:
+    sourcePath: AgoraPlayerHookPlugin/HookSDK/dll/agora_playhook_sdk.dll
+    destination: AgoraPlayerHookPlugin/Release/
+    
+- task: ArchiveFiles@3
   inputs:
     rootFolderOrFile: 'AgoraPlayerHookPlugin/Release/'
     includeRootFolder: true
