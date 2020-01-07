@@ -3,9 +3,10 @@
 #include <stdint.h>
 #include "common/rapidjson/document.h"
 #include "common/rapidjson/writer.h"
-
+#include <tchar.h>
 using namespace rapidjson;
-
+FILE* outfile1 = NULL;
+FILE* outfile = NULL;
 CAudioCaptureCallback::CAudioCaptureCallback()
 {
     m_lpHookAudioCicleBuffer = new CicleBuffer(48000 * 2 * 2, 0);
@@ -40,11 +41,58 @@ CHookPlugin::CHookPlugin()
     , musicPlayerPath("")
 {
     pPlayerData = new BYTE[0x800000];
+
+    TCHAR szFilePath[MAX_PATH];
+    ::GetModuleFileName(NULL, szFilePath, MAX_PATH);
+    LPTSTR lpLastSlash = _tcsrchr(szFilePath, _T('\\'));
+
+    if (lpLastSlash == NULL)
+        return;
+
+    SIZE_T nNameLen = MAX_PATH - (lpLastSlash - szFilePath + 1);
+    _tcscpy_s(lpLastSlash + 1, nNameLen, _T("DebugMode.ini"));
+
+    //Default 0
+    TCHAR savePcm[MAX_PATH] = { 0 };
+    ::GetPrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), NULL, savePcm, MAX_PATH, szFilePath);
+
+    TCHAR DebugMode[MAX_PATH] = { 0 };
+    ::GetPrivateProfileString(_T("DebugMode"), _T("DebugMode"), NULL, DebugMode, MAX_PATH, szFilePath);
+
+    if (_tccmp(savePcm, _T("1")) == 0)
+        isSaveDump = true;
+    else
+        isSaveDump = false;
+
+    if (_tccmp(DebugMode, _T("1")) == 0)
+        isDebugMode = true;
+    else
+        isDebugMode = false;
+
+    if (isSaveDump) {
+        outfile1 = fopen("./AgoraHookLog/MusicDest.pcm", "ab+");
+        outfile = fopen("./AgoraHookLog/FrameMix.pcm", "ab+");
+    }
 }
 
 CHookPlugin::~CHookPlugin()
 {
-    delete[] pPlayerData;
+    if (isSaveDump) {
+        if (outfile1) {
+            fclose(outfile1);
+            outfile1 = NULL;
+        }
+
+        if (outfile) {
+            fclose(outfile);
+            outfile = NULL;
+        }
+    }
+
+    if (pPlayerData) {
+        delete[] pPlayerData;
+        pPlayerData = NULL;
+    }
 }
 
 int16_t MixerAddS16(int16_t var1, int16_t var2)
@@ -79,8 +127,48 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
 				if (!audioFrame) return true;
 
 				SIZE_T nSize = audioFrame->channels*audioFrame->samples * 2;
+
+    //for debug
+    if(isDebugMode){
+
+        static int nCountAudioCallBack = 0;
+        nCountAudioCallBack++;
+        static DWORD dwLastStamp = GetTickCount();
+        DWORD dwCurrStamp = GetTickCount();
+        if (5000 < dwCurrStamp - dwLastStamp) 
+        {
+
+            float fRecordAudioFrame = nCountAudioCallBack * 1000.0 / (dwCurrStamp - dwLastStamp);
+            char logMsg[128] = { '\0' };
+            sprintf_s(logMsg, "RecordAudioFrame :%d , %d,16,%d [ Rate : %.2f]\n", nSize, audioFrame->channels, audioFrame->samplesPerSec, fRecordAudioFrame);
+            OutputDebugStringA(logMsg);
+
+            FILE* log;
+            log = fopen("./AgoraHookLog/PlayerHookerV6_1.log", ("a+"));
+            if (log != NULL)
+            {
+                SYSTEMTIME st;
+                GetLocalTime(&st);
+                fprintf(log, "%d%02d%02d-%02d%02d%02d%03d:  %s", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds, logMsg);
+                fclose(log);
+            }
+
+            dwLastStamp = dwCurrStamp;
+            nCountAudioCallBack = 0;
+        }
+    }
+    //end
+
 				unsigned int datalen = 0;
 				callback.getCicleBuffer()->readBuffer(pPlayerData, nSize, &datalen);
+    //for debug
+    if(isSaveDump){
+       
+        if (outfile1)
+        {
+            fwrite(this->pPlayerData, 1, datalen, outfile1);
+        }
+    }
 
 				int nMixLen = nSize;
 				if (nSize > 0 && datalen > 0 && audioFrame->buffer)
@@ -88,6 +176,14 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
 								int nMixLen = datalen > nSize ? nSize : datalen;
 								MixerAddS16((int16_t*)audioFrame->buffer, (int16_t*)pPlayerData, (audioFrame->channels * audioFrame->bytesPerSample) *  audioFrame->samples / sizeof(int16_t));
 				}
+
+    //for test
+    if (isSaveDump) {
+        if (outfile)
+        {
+            fwrite(audioFrame->buffer, 1, nMixLen, outfile);
+        }
+    }
 				return true;
 }
 

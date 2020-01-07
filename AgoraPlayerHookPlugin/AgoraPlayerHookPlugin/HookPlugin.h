@@ -55,7 +55,10 @@ private:
  CAudioCaptureCallback callback;
  createPlayerHookerInstanceFuncType* createPlayerHookerInstanceFunc;
  destoryPlayerHookerInstanceFuncType* destoryPlayerHookerInstanceFunc;
- bool bForceRestartPlayer;
- std::string musicPlayerPath;
- std::string hookpath;
+ bool bForceRestartPlayer = false;
+ std::string musicPlayerPath="";
+ std::string hookpath = "";
+
+ bool isSaveDump = false;
+ bool isDebugMode = false;
 };
