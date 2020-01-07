@@ -263,7 +263,7 @@ bool CHookPlugin::enable()
         return false;
 
 #ifdef UNICODE
-    int ret = m_lpAgoraPlayerHook->startHook(playerPath, bForceRestartPlayer);
+    int ret = m_lpAgoraPlayerHook->startHook(musicPlayerPath.c_str(), bForceRestartPlayer);
 #else
     WCHAR wsczPath[MAX_PATH] = { 0 };
     MultiByteToWideChar(CP_UTF8, 0, musicPlayerPath.c_str(), MAX_PATH, wsczPath, MAX_PATH);
@@ -315,7 +315,12 @@ bool CHookPlugin::setBoolParameters(const char* param, bool value)
 bool CHookPlugin::setParameter(const char* param)
 {
     Document doc;
-   
+    doc.Parse(param);
+
+    if (doc.HasParseError()) {
+        return false;
+    }
+
     if (doc.HasMember("plugin.hookAudio.hookpath")) {
         hookpath = doc["plugin.hookAudio.hookpath"].GetString();
     }
