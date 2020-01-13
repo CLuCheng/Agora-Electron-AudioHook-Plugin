@@ -9,7 +9,7 @@ FILE* outfile1 = NULL;
 FILE* outfile = NULL;
 CAudioCaptureCallback::CAudioCaptureCallback()
 {
-    m_lpHookAudioCicleBuffer = new CicleBuffer(48000 * 2 * 2, 0);
+    m_lpHookAudioCicleBuffer = new CicleBuffer(44100 * 2 * 2, 0);
     m_lpHookAudioCicleBuffer->flushBuffer();
 }
 
@@ -54,7 +54,7 @@ CHookPlugin::CHookPlugin()
 
     //Default 0
     TCHAR savePcm[MAX_PATH] = { 0 };
-    ::GetPrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), NULL, savePcm, MAX_PATH, szFilePath);
+    ::GetPrivateProfileString(_T("DebugMode"), _T("SaveDumpPcm"), NULL, savePcm, MAX_PATH, "./DebugMode.ini");
 
     TCHAR DebugMode[MAX_PATH] = { 0 };
     ::GetPrivateProfileString(_T("DebugMode"), _T("DebugMode"), NULL, DebugMode, MAX_PATH, szFilePath);
