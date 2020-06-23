@@ -70,8 +70,8 @@ CHookPlugin::CHookPlugin()
         isDebugMode = false;
 
     if (isSaveDump) {
-        outfile1 = fopen("./AgoraHookLog/MusicDest.pcm", "ab+");
-        outfile = fopen("./AgoraHookLog/FrameMix.pcm", "ab+");
+        fopen_s(&outfile1,"./AgoraHookLog/MusicDest.pcm", "ab+");
+        fopen_s(&outfile,"./AgoraHookLog/FrameMix.pcm", "ab+");
     }
 }
 
@@ -126,7 +126,7 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
 {
 				if (!audioFrame) return true;
 
-				SIZE_T nSize = audioFrame->channels*audioFrame->samples * 2;
+	SIZE_T nSize = audioFrame->channels*audioFrame->samples * 2;
 
     //for debug
     if(isDebugMode){
@@ -144,7 +144,7 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
             OutputDebugStringA(logMsg);
 
             FILE* log;
-            log = fopen("./AgoraHookLog/PlayerHookerV6_1.log", ("a+"));
+            fopen_s(&log,"./AgoraHookLog/PlayerHookerV6_1.log", ("a+"));
             if (log != NULL)
             {
                 SYSTEMTIME st;
@@ -159,8 +159,8 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
     }
     //end
 
-				unsigned int datalen = 0;
-				callback.getCicleBuffer()->readBuffer(pPlayerData, nSize, &datalen);
+	unsigned int datalen = 0;
+	callback.getCicleBuffer()->readBuffer(pPlayerData, nSize, &datalen);
     //for debug
     if(isSaveDump){
        
@@ -170,12 +170,12 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
         }
     }
 
-				int nMixLen = nSize;
-				if (nSize > 0 && datalen > 0 && audioFrame->buffer)
-				{
-								int nMixLen = datalen > nSize ? nSize : datalen;
-								MixerAddS16((int16_t*)audioFrame->buffer, (int16_t*)pPlayerData, (audioFrame->channels * audioFrame->bytesPerSample) *  audioFrame->samples / sizeof(int16_t));
-				}
+	int nMixLen = nSize;
+	if (nSize > 0 && datalen > 0 && audioFrame->buffer)
+	{
+		int nMixLen = datalen > nSize ? nSize : datalen;
+		MixerAddS16((int16_t*)audioFrame->buffer, (int16_t*)pPlayerData, (audioFrame->channels * audioFrame->bytesPerSample) *  audioFrame->samples / sizeof(int16_t));
+	}
 
     //for test
     if (isSaveDump) {
@@ -184,7 +184,7 @@ bool CHookPlugin::onPluginRecordAudioFrame(AudioPluginFrame* audioFrame)
             fwrite(audioFrame->buffer, 1, nMixLen, outfile);
         }
     }
-				return true;
+	return true;
 }
 
 bool CHookPlugin::onPluginPlaybackAudioFrame(AudioPluginFrame* audioFrame)
@@ -213,10 +213,10 @@ bool CHookPlugin::onPluginRenderVideoFrame(unsigned int uid, VideoPluginFrame* v
 }
 
 
-bool CHookPlugin::load(const char* path)
+int CHookPlugin::load(const char* path)
 {
     if (strlen(path) == 0)
-        return false;
+        return -1;
     char szFileName[MAX_PATH] = { 0 };
     strncpy_s(szFileName, MAX_PATH, path, strlen(path));
     strcat_s(szFileName, MAX_PATH, "agora_playhook_sdk.dll");
@@ -233,34 +233,34 @@ bool CHookPlugin::load(const char* path)
         }
 
         if (m_lpAgoraPlayerHook)
-            return true;
+            return 0;
         else
             FreeLibrary(hModule);
     }
     // m_lpAgoraPlayerHook = createPlayerHookerInstance();
     if (m_lpAgoraPlayerHook)
-        return true;
-    return false;
+        return 0;
+    return -1;
 }
 
-bool CHookPlugin::unLoad()
+int CHookPlugin::unLoad()
 {
-				if (m_lpAgoraPlayerHook) {
-								destoryPlayerHookerInstanceFunc(m_lpAgoraPlayerHook);
-								m_lpAgoraPlayerHook = NULL;
-				}
+	if (m_lpAgoraPlayerHook) {
+		destoryPlayerHookerInstanceFunc(m_lpAgoraPlayerHook);
+		m_lpAgoraPlayerHook = NULL;
+	}
 
-				if (hModule) {
-								FreeLibrary(hModule);
-								hModule = NULL;
-				}
-				return true;
+	if (hModule) {
+		FreeLibrary(hModule);
+		hModule = NULL;
+	}
+	return 0;
 }
 
-bool CHookPlugin::enable()
+int CHookPlugin::enable()
 {
     if (!m_lpAgoraPlayerHook)
-        return false;
+        return -1;
 
 #ifdef UNICODE
     int ret = m_lpAgoraPlayerHook->startHook(musicPlayerPath.c_str(), bForceRestartPlayer);
@@ -270,24 +270,24 @@ bool CHookPlugin::enable()
     int ret = m_lpAgoraPlayerHook->startHook(wsczPath, bForceRestartPlayer);
 #endif
     if (ret != 0)
-        return false;
+        return -1;
 
     ret = m_lpAgoraPlayerHook->startAudioCapture(&callback);
     if (ret != 0)
-        return false;
+        return -1;
 
-    return true;
+    return 0;
 }
 
-bool CHookPlugin::disable()
+int CHookPlugin::disable()
 {
-				if (!m_lpAgoraPlayerHook) {
-								return false;
-				}
+	if (!m_lpAgoraPlayerHook) {
+		return -1;
+	}
 
-				m_lpAgoraPlayerHook->stopHook();
-				m_lpAgoraPlayerHook->stopAudioCapture();
-				return true;
+	m_lpAgoraPlayerHook->stopHook();
+	m_lpAgoraPlayerHook->stopAudioCapture();
+	return 0;
 }
 
 /*
@@ -312,13 +312,13 @@ bool CHookPlugin::setBoolParameters(const char* param, bool value)
  return true;
 }*/
 
-bool CHookPlugin::setParameter(const char* param)
+int CHookPlugin::setParameter(const char* param)
 {
     Document doc;
     doc.Parse(param);
 
     if (doc.HasParseError()) {
-        return false;
+        return -1;
     }
 
     if (doc.HasMember("plugin.hookAudio.hookpath")) {
@@ -333,12 +333,29 @@ bool CHookPlugin::setParameter(const char* param)
         bForceRestartPlayer = doc["plugin.hookAudio.forceRestart"].GetBool();
     }
 
-    return true;
+    return 0;
 }
 
-void CHookPlugin::release()
+const char* CHookPlugin::getParameter(const char* key)
+{
+    if (!key)return NULL;
+    if (!strcmp(key, "plugin.hookAudio.forceRestart")) {
+        return bForceRestartPlayer ? "true" : "false";
+    }
+    else if (!strcmp(key, "plugin.hookAudio.playerPath")) {
+        return musicPlayerPath.c_str();
+    }
+    else if (!strcmp(key, "plugin.hookAudio.hookpath")) {
+        return hookpath.c_str();
+    }
+    
+    return NULL;
+}
+
+int CHookPlugin::release()
 {
     delete this;
+    return 0;
 }
 
 IAVFramePlugin* createAVFramePlugin()

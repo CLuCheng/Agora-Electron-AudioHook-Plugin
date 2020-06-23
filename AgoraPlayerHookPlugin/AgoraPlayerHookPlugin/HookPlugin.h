@@ -39,14 +39,16 @@ public:
  virtual bool onPluginMixedAudioFrame(AudioPluginFrame* audioFrame) override;
  virtual bool onPluginPlaybackAudioFrameBeforeMixing(unsigned int uid, AudioPluginFrame* audioFrame) override;
 
- virtual bool load(const char* path) override;
- virtual bool unLoad() override;
- virtual bool enable() override;
- virtual bool disable() override;
- virtual bool setParameter(const char* param) override;
+ virtual int load(const char* path) override;
+ virtual int unLoad() override;
+ virtual int enable() override;
+ virtual int disable() override;
+ virtual int setParameter(const char* param) override;
+ virtual const char* getParameter(const char* key) override;
+
  //virtual bool setBoolParameters(const char* param, bool value) override;
  //virtual bool setStringParameters(const char* param, const char* value) override;
- virtual void release() override;
+ virtual int release() override;
 private:
  LPBYTE pPlayerData;
  int    nPlayerDataLen;
